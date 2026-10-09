@@ -136,20 +136,6 @@ The reader expects a dataset root containing subject files such as `S2/S2.pkl`. 
 
 The checked-in extractor reads chest **ECG, EDA, and temperature at 700 Hz**, using 6,000-sample windows and 4,000-sample overlap. ECG is passed through the cardiovascular feature module under BVP-style names. This differs from the thesis's wrist BVP/GSR/SKT configuration. Reproducing that configuration requires adapting signal selection, sampling rates, and label alignment.
 
-### Required integration work
-
-| Issue | Action before end-to-end training |
-| --- | --- |
-| Missing dimension-aware helpers | Restore or implement `Feature_wise_Normalization.Create_feature_maps_Dimension` and `WESAD.Create_feature_maps_wesad_dimension`. WEMAC training expects maps plus label/arousal/valence/dominance arrays; WESAD expects maps plus label/arousal/valence arrays. Preserve these contracts and the intended split logic. |
-| Basic helper mismatch | Included basic generators return maps and labels only. Renaming their imports alone does not supply the missing targets or dimension-aware behavior. |
-| Model imports | Replace obsolete `Training.models...` paths with the chosen dataset's model import. WESAD scripts also import `ResNetLSTM`, which is not defined in the included model files. |
-| Utility imports | Both `Training/utils.py` files reference the absent `Feature_wise_Normalization.Create_feature_maps` package. Adapt or remove unused legacy imports. |
-| Local paths | Replace hard-coded home directories and obsolete `sys.path` entries. Resolve data/output paths explicitly; the WESAD reader changes the working directory. |
-| JSON serialization | Exporters append a comma after serialized objects, while readers use `json.load`. Write one valid JSON object per file and regenerate caches. |
-| WESAD cache layout | Replace backslash-based path concatenation where needed. Keep only per-subject caches in `json_files`; store aggregate output elsewhere. |
-| Normalization logs | Align WEMAC's writer/reader filenames (`svm_AD` versus `KNN_AD` defaults). The standalone WESAD map example also needs its WESAD log path. Parsers require a completed `Over all Best N:` entry. |
-| Target classes | Select the target and explicitly encode labels as contiguous integers from zero. Set the classifier output size to the actual class count. |
-
 ## Training experiments
 
 These are experiment entry points **after** completing the integration work above:
